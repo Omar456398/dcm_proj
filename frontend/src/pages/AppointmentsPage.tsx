@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { format, addDays, subDays, parseISO } from 'date-fns';
+import { format, addDays, parseISO } from 'date-fns';
 import { fetchAppointments } from '../api/appointments';
 import { AppointmentStatus } from '../types/appointment';
 import AppointmentCard from '../components/AppointmentCard';
 import { SkeletonCard, EmptyState, ErrorState } from '../components/States';
-import StatusBadge, { STATUS_OPTIONS } from '../components/StatusBadge';
+import { STATUS_OPTIONS } from '../components/StatusBadge';
 
 // All doctors currently come from appointments; a dedicated /doctors endpoint
 // can replace this once built. For now we derive unique doctors from results.
@@ -50,7 +50,6 @@ export default function AppointmentsPage() {
 
   return (
     <div className="min-h-screen bg-[#f8fafc]">
-      {/* ── Header ─────────────────────────────────────────────── */}
       <header className="bg-[#1e3a5f] text-white shadow-md">
         <div className="mx-auto max-w-4xl px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -65,7 +64,6 @@ export default function AppointmentsPage() {
               <p className="text-xs text-blue-200 mt-0.5">Appointment Management</p>
             </div>
           </div>
-          {/* Desktop: appointment count summary */}
           {data && !isLoading && (
             <span className="hidden sm:inline-flex items-center rounded-full bg-white/10 px-3 py-1 text-sm font-medium">
               {data.length} appointment{data.length !== 1 ? 's' : ''}
@@ -75,11 +73,9 @@ export default function AppointmentsPage() {
       </header>
 
       <main className="mx-auto max-w-4xl px-4 py-6 space-y-4">
-        {/* ── Date navigator ──────────────────────────────────── */}
         <section aria-label="Date navigation"
           className="bg-white rounded-xl shadow-sm border border-gray-100 px-4 py-3">
           <div className="flex items-center justify-between gap-3">
-            {/* Prev day */}
             <button
               onClick={() => shiftDate(-1)}
               aria-label="Previous day"
@@ -108,7 +104,6 @@ export default function AppointmentsPage() {
               </div>
             </div>
 
-            {/* Next day */}
             <button
               onClick={() => shiftDate(1)}
               aria-label="Next day"
@@ -121,11 +116,9 @@ export default function AppointmentsPage() {
           </div>
         </section>
 
-        {/* ── Filters ─────────────────────────────────────────── */}
         <section aria-label="Filters"
           className="bg-white rounded-xl shadow-sm border border-gray-100 px-4 py-3 space-y-3">
 
-          {/* Doctor filter */}
           <div className="flex items-center gap-2">
             <svg className="h-4 w-4 shrink-0 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round"
@@ -148,7 +141,6 @@ export default function AppointmentsPage() {
             </select>
           </div>
 
-          {/* Status chips */}
           <div className="flex items-center gap-2 overflow-x-auto pb-0.5 scrollbar-hide">
             <span className="text-xs font-medium text-gray-500 shrink-0">Status</span>
             <button
@@ -177,27 +169,22 @@ export default function AppointmentsPage() {
           </div>
         </section>
 
-        {/* ── Appointments list ────────────────────────────────── */}
         <section aria-label="Appointments list" aria-live="polite">
 
-          {/* Loading skeletons */}
           {isLoading && (
             <div className="space-y-3">
               {[1, 2, 3].map((n) => <SkeletonCard key={n} />)}
             </div>
           )}
 
-          {/* Error */}
           {isError && <ErrorState onRetry={refetch} />}
 
-          {/* Results */}
           {data && !isLoading && data.length === 0 && (
             <EmptyState date={dateLabel} />
           )}
 
           {data && data.length > 0 && (
             <div className="space-y-3">
-              {/* Mobile: count pill */}
               <div className="flex items-center justify-between sm:hidden">
                 <span className="text-xs text-gray-500 font-medium">
                   {data.length} appointment{data.length !== 1 ? 's' : ''}

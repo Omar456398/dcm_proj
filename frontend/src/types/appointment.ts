@@ -11,6 +11,14 @@ export interface Doctor {
   name: string;
 }
 
+export interface ImagingStudy {
+  id: string;
+  appointmentId: string;
+  modality: string;
+  description: string | null;
+  dicomFilePath: string;
+}
+
 export interface Appointment {
   id: string;
   patientName: string;
@@ -22,6 +30,7 @@ export interface Appointment {
   reason: string | null;
   createdAt: string;
   updatedAt: string;
+  imagingStudies?: ImagingStudy[];
 }
 
 export interface AppointmentConflictError {

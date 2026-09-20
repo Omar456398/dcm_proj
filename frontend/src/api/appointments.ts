@@ -16,6 +16,15 @@ export async function fetchAppointments(params: {
   return res.json();
 }
 
+export async function fetchAppointmentById(id: string): Promise<Appointment> {
+  const res = await fetch(`${BASE}/appointments/${id}`);
+  if (!res.ok) {
+    if (res.status === 404) throw new Error('Appointment not found');
+    throw new Error('Failed to fetch appointment');
+  }
+  return res.json();
+}
+
 export async function patchAppointmentStatus(
   id: string,
   status: AppointmentStatus,
