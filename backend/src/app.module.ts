@@ -5,6 +5,7 @@ import { Appointment } from './entities/appointment.entity';
 import { Doctor } from './entities/doctor.entity';
 import { ImagingStudy } from './entities/imaging-study.entity';
 import { AppointmentsModule } from './appointments/appointments.module';
+import { ImagingStudiesModule } from './imaging-studies/imaging-studies.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { AppointmentsModule } from './appointments/appointments.module';
     }),
 
     AppointmentsModule,
+    ImagingStudiesModule,
   ],
 })
 export class AppModule {}

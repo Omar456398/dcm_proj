@@ -1,7 +1,7 @@
 import React from 'react';
 import { ImagingStudy } from '../types/appointment';
 import { DcmCardStage } from '../context/NavigationContext';
-import DcmViewerPlaceholder from './DcmViewerPlaceholder';
+import RealDcmViewer from './RealDcmViewer';
 
 interface Props {
   imagingStudies: ImagingStudy[];
@@ -44,7 +44,7 @@ export default function DcmContainerCard({ imagingStudies, stage }: Props) {
                 </span>
               </div>
               <p className="text-xs text-slate-300 mt-0.5">
-                Single-frame anonymized study linked to appointment
+                Medical diagnostic imaging viewer
               </p>
             </div>
           </div>
@@ -60,7 +60,7 @@ export default function DcmContainerCard({ imagingStudies, stage }: Props) {
         </div>
 
         <div className="p-3 sm:p-5 bg-slate-100/70">
-          <DcmViewerPlaceholder imagingStudies={imagingStudies} />
+          <RealDcmViewer imagingStudies={imagingStudies} />
         </div>
 
         <div className="px-5 py-3 bg-slate-50 border-t border-slate-100 flex flex-wrap items-center justify-between text-xs text-slate-500 gap-2">
