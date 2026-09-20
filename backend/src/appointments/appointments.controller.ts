@@ -27,6 +27,12 @@ export class AppointmentsController {
     return this.appointmentsService.list(query);
   }
 
+  /** GET /appointments/:id */
+  @Get(':id')
+  findOne(@Param('id', ParseUUIDPipe) id: string) {
+    return this.appointmentsService.findOne(id);
+  }
+
   /** POST /appointments */
   @Post()
   @HttpCode(HttpStatus.CREATED)

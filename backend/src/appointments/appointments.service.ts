@@ -52,6 +52,18 @@ export class AppointmentsService {
     return qb.getMany();
   }
 
+  // ── Single appointment ───────────────────────────────────────────────────
+  async findOne(id: string): Promise<Appointment> {
+    const appointment = await this.appointmentRepo.findOne({
+      where: { id },
+      relations: { doctor: true },
+    });
+    if (!appointment) {
+      throw new NotFoundException(`Appointment ${id} not found`);
+    }
+    return appointment;
+  }
+
   // ── 3 & 5: Create with advisory-lock-based conflict prevention ───────────
   async create(dto: CreateAppointmentDto): Promise<Appointment> {
     // Verify doctor exists before acquiring lock
