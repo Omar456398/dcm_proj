@@ -36,7 +36,7 @@ async function seed() {
       [
         'Alexandra Reed',           // PatientName from DICOM
         doctorId,
-        '2024-10-21T10:00:00Z',     // StudyDate 20241021 → slotted 10:00 UTC
+        '2026-09-20T10:00:00Z',     // StudyDate 20260920 → slotted 10:00 UTC
         60,
         'completed',
         'Headaches',               // ReasonForStudy from brain_mri.dcm
@@ -76,7 +76,7 @@ async function seed() {
 
     console.log('✅ Seed complete');
     console.log(`   Doctor      : Dr. Sarah Mitchell (${doctorId})`);
-    console.log(`   Appointment : Alexandra Reed on 2024-10-21 (${appointmentId})`);
+    console.log(`   Appointment : Alexandra Reed on 2026-09-20 (${appointmentId})`);
     console.log('   Studies     : brain_mri.dcm (MR) + face.dcm (OT)');
   } catch (err) {
     await queryRunner.rollbackTransaction();
