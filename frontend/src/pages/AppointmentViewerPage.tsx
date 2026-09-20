@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { format } from 'date-fns';
+import { formatUtcDate, formatUtcTime } from '../utils/dateTime';
 import { fetchAppointmentById, patchAppointmentStatus } from '../api/appointments';
 import { AppointmentStatus } from '../types/appointment';
 import { useNavigation } from '../context/NavigationContext';
@@ -76,7 +76,7 @@ export default function AppointmentViewerPage() {
       <div className="min-h-screen bg-[#f8fafc] flex flex-col items-center justify-center p-4">
         <ErrorState onRetry={refetch} />
         <button
-          onClick={navigateToList}
+          onClick={() => navigateToList()}
           disabled={isNavigating}
           className="mt-4 inline-flex items-center gap-2 text-sm text-[#1e3a5f] font-semibold hover:underline"
         >
@@ -95,7 +95,7 @@ export default function AppointmentViewerPage() {
       <header className="bg-[#1e3a5f] text-white shadow-md sticky top-0 z-20">
         <div className="mx-auto max-w-4xl px-4 py-3.5 flex items-center justify-between gap-3">
           <button
-            onClick={navigateToList}
+            onClick={() => navigateToList()}
             disabled={isNavigating}
             aria-label="Back to schedule"
             className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white text-sm font-medium transition-colors cursor-pointer"
@@ -181,10 +181,10 @@ export default function AppointmentViewerPage() {
                 Date & Time
               </span>
               <p className="font-semibold text-slate-800">
-                {format(startsAt, 'EEE, MMM d yyyy')}
+                {formatUtcDate(startsAt)}
               </p>
               <p className="text-xs text-slate-500 mt-0.5">
-                {format(startsAt, 'h:mm a')} – {format(endsAt, 'h:mm a')} ({appointment.durationMinutes} min)
+                {formatUtcTime(startsAt)} – {formatUtcTime(endsAt)} ({appointment.durationMinutes} min)
               </p>
             </div>
 

@@ -1,6 +1,6 @@
 import React from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { format } from 'date-fns';
+import { formatUtcTime } from '../utils/dateTime';
 import { Appointment, AppointmentStatus } from '../types/appointment';
 import { patchAppointmentStatus } from '../api/appointments';
 import { useNavigation } from '../context/NavigationContext';
@@ -60,10 +60,10 @@ export default function AppointmentCard({ appointment, queryKey }: Props) {
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6l4 2m6-2a10 10 0 11-20 0 10 10 0 0120 0z" />
             </svg>
             <span className="font-semibold text-gray-800">
-              {format(startsAt, 'h:mm a')}
+              {formatUtcTime(startsAt)}
             </span>
             <span>–</span>
-            <span>{format(endsAt, 'h:mm a')}</span>
+            <span>{formatUtcTime(endsAt)}</span>
             <span className="inline-flex items-center rounded-md bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600">
               {appointment.durationMinutes} min
             </span>

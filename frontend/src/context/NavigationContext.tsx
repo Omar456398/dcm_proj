@@ -7,20 +7,23 @@ import React, {
   useState,
 } from 'react';
 
-export type Page = 'list' | 'viewer';
+export type Page = 'list' | 'viewer' | 'create';
 export type PageFadeState = 'visible' | 'hidden';
 export type DcmCardStage = 'hidden' | 'opening' | 'open' | 'closing';
 
 interface NavigationContextValue {
   activePage: Page;
   selectedAppointmentId: string | null;
+  selectedDate: string;
+  setSelectedDate: (date: string) => void;
   pageFadeState: PageFadeState;
   dcmCardStage: DcmCardStage;
   isNavigating: boolean;
   hasDcm: boolean;
   setHasDcm: (hasDcm: boolean) => void;
   navigateToViewer: (appointmentId: string) => void;
-  navigateToList: () => void;
+  navigateToCreate: () => void;
+  navigateToList: (targetDate?: string) => void;
 }
 
 const NavigationContext = createContext<NavigationContextValue | undefined>(
@@ -30,13 +33,18 @@ const NavigationContext = createContext<NavigationContextValue | undefined>(
 export function NavigationProvider({ children }: { children: React.ReactNode }) {
   const initialParams = new URLSearchParams(window.location.search);
   const initialAppointmentId = initialParams.get('appointmentId');
+  const initialView = initialParams.get('view');
 
   const [activePage, setActivePage] = useState<Page>(
-    initialAppointmentId ? 'viewer' : 'list',
+    initialAppointmentId ? 'viewer' : initialView === 'create' ? 'create' : 'list',
   );
   const [selectedAppointmentId, setSelectedAppointmentId] = useState<
     string | null
   >(initialAppointmentId);
+
+  // Global selected date for schedule view (YYYY-MM-DD)
+  const todayStr = new Date().toISOString().split('T')[0];
+  const [selectedDate, setSelectedDate] = useState<string>(todayStr);
 
   // Page 0.3s fade state: 'visible' (opacity 1) or 'hidden' (opacity 0)
   const [pageFadeState, setPageFadeState] = useState<PageFadeState>('visible');
@@ -77,33 +85,25 @@ export function NavigationProvider({ children }: { children: React.ReactNode }) 
   }, [isNavigating, activePage, pageFadeState, hasDcm, dcmCardStage]);
 
   // Navigate to Viewer:
-  // 1. Current page fadeout (0.3s)
-  // 2. Switch component at opacity 0
-  // 3. New page fadein (0.3s)
-  // 4. Trigger DCM opening animation (after fadein)
   const navigateToViewer = useCallback((appointmentId: string) => {
     if (isNavigatingRef.current) return;
     setIsNavigating(true);
 
-    // 1. Fade out current page (0.3s)
     setPageFadeState('hidden');
 
     setTimeout(() => {
-      // 2. Switch page while completely hidden
       setActivePage('viewer');
       setSelectedAppointmentId(appointmentId);
       setDcmCardStage('hidden');
       setHasDcmState(false);
 
       const url = new URL(window.location.href);
+      url.searchParams.delete('view');
       url.searchParams.set('appointmentId', appointmentId);
       window.history.pushState({ appointmentId }, '', url.toString());
 
-      // Next frame: trigger 0.3s fade-in of the new viewer page
       setTimeout(() => {
         setPageFadeState('visible');
-
-        // 3. Fade-in completes after 300ms
         setTimeout(() => {
           setIsNavigating(false);
         }, 300);
@@ -111,35 +111,27 @@ export function NavigationProvider({ children }: { children: React.ReactNode }) 
     }, 300);
   }, []);
 
-  // Navigate back to List:
-  // 1. If DCM card is open: trigger DCM closing animation FIRST (0.3s)
-  // 2. Viewer page fadeout (0.3s)
-  // 3. Switch component to list at opacity 0
-  // 4. List page fadein (0.3s)
-  const navigateToList = useCallback(() => {
+  // Navigate to Create Appointment:
+  const navigateToCreate = useCallback(() => {
     if (isNavigatingRef.current) return;
     setIsNavigating(true);
 
-    const performPageFadeAndSwitch = () => {
-      // Step A: Fade out viewer page (0.3s)
+    const performFadeAndSwitch = () => {
       setPageFadeState('hidden');
 
       setTimeout(() => {
-        // Step B: Switch to list page while completely hidden
-        setActivePage('list');
+        setActivePage('create');
         setSelectedAppointmentId(null);
         setDcmCardStage('hidden');
         setHasDcmState(false);
 
         const url = new URL(window.location.href);
         url.searchParams.delete('appointmentId');
-        window.history.pushState({}, '', url.toString());
+        url.searchParams.set('view', 'create');
+        window.history.pushState({ view: 'create' }, '', url.toString());
 
-        // Next frame: trigger 0.3s fade-in of the list page
         setTimeout(() => {
           setPageFadeState('visible');
-
-          // Step C: Fade-in completes after 300ms
           setTimeout(() => {
             setIsNavigating(false);
           }, 300);
@@ -147,7 +139,52 @@ export function NavigationProvider({ children }: { children: React.ReactNode }) 
       }, 300);
     };
 
-    // If DCM is currently open/opening, run closing animation before fadeout!
+    if (
+      hasDcmRef.current &&
+      (dcmCardStageRef.current === 'open' || dcmCardStageRef.current === 'opening')
+    ) {
+      setDcmCardStage('closing');
+      setTimeout(() => {
+        setDcmCardStage('hidden');
+        performFadeAndSwitch();
+      }, 300);
+    } else {
+      performFadeAndSwitch();
+    }
+  }, []);
+
+  // Navigate back to List:
+  const navigateToList = useCallback((targetDate?: string) => {
+    if (isNavigatingRef.current) return;
+    setIsNavigating(true);
+
+    if (targetDate) {
+      setSelectedDate(targetDate);
+    }
+
+    const performPageFadeAndSwitch = () => {
+      setPageFadeState('hidden');
+
+      setTimeout(() => {
+        setActivePage('list');
+        setSelectedAppointmentId(null);
+        setDcmCardStage('hidden');
+        setHasDcmState(false);
+
+        const url = new URL(window.location.href);
+        url.searchParams.delete('appointmentId');
+        url.searchParams.delete('view');
+        window.history.pushState({}, '', url.toString());
+
+        setTimeout(() => {
+          setPageFadeState('visible');
+          setTimeout(() => {
+            setIsNavigating(false);
+          }, 300);
+        }, 40);
+      }, 300);
+    };
+
     if (
       hasDcmRef.current &&
       (dcmCardStageRef.current === 'open' || dcmCardStageRef.current === 'opening')
@@ -167,9 +204,12 @@ export function NavigationProvider({ children }: { children: React.ReactNode }) 
     const handlePopState = () => {
       const params = new URLSearchParams(window.location.search);
       const apptId = params.get('appointmentId');
+      const view = params.get('view');
 
       if (apptId) {
         navigateToViewer(apptId);
+      } else if (view === 'create') {
+        navigateToCreate();
       } else {
         navigateToList();
       }
@@ -177,19 +217,22 @@ export function NavigationProvider({ children }: { children: React.ReactNode }) 
 
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
-  }, [navigateToViewer, navigateToList]);
+  }, [navigateToViewer, navigateToCreate, navigateToList]);
 
   return (
     <NavigationContext.Provider
       value={{
         activePage,
         selectedAppointmentId,
+        selectedDate,
+        setSelectedDate,
         pageFadeState,
         dcmCardStage,
         isNavigating,
         hasDcm,
         setHasDcm,
         navigateToViewer,
+        navigateToCreate,
         navigateToList,
       }}
     >

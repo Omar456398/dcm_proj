@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { NavigationProvider, useNavigation } from './context/NavigationContext';
 import AppointmentsPage from './pages/AppointmentsPage';
 import AppointmentViewerPage from './pages/AppointmentViewerPage';
+import CreateAppointmentPage from './pages/CreateAppointmentPage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -24,8 +25,10 @@ function AppRouter() {
     >
       {activePage === 'list' ? (
         <AppointmentsPage />
-      ) : (
+      ) : activePage === 'viewer' ? (
         <AppointmentViewerPage />
+      ) : (
+        <CreateAppointmentPage />
       )}
     </div>
   );

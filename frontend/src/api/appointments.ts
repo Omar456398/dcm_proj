@@ -1,6 +1,14 @@
-import { Appointment, AppointmentStatus } from '../types/appointment';
+import { Appointment, AppointmentStatus, Doctor } from '../types/appointment';
 
 const BASE = 'http://localhost:3001';
+
+export interface CreateAppointmentPayload {
+  patientName: string;
+  doctorId: string;
+  startsAt: string; // ISO-8601
+  durationMinutes: number;
+  reason?: string;
+}
 
 export async function fetchAppointments(params: {
   date: string;
@@ -22,6 +30,39 @@ export async function fetchAppointmentById(id: string): Promise<Appointment> {
     if (res.status === 404) throw new Error('Appointment not found');
     throw new Error('Failed to fetch appointment');
   }
+  return res.json();
+}
+
+export async function fetchDoctors(): Promise<Doctor[]> {
+  const res = await fetch(`${BASE}/doctors`);
+  if (!res.ok) throw new Error('Failed to load doctors');
+  return res.json();
+}
+
+export async function createAppointment(
+  payload: CreateAppointmentPayload,
+): Promise<Appointment> {
+  const res = await fetch(`${BASE}/appointments`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+
+  if (!res.ok) {
+    const errorBody = await res.json().catch(() => ({}));
+    const message = Array.isArray(errorBody?.message)
+      ? errorBody.message.join(', ')
+      : errorBody?.message || 'Failed to create appointment';
+
+    const err = new Error(message);
+    Object.assign(err, {
+      statusCode: res.status,
+      errorCode: errorBody?.error,
+      body: errorBody,
+    });
+    throw err;
+  }
+
   return res.json();
 }
 

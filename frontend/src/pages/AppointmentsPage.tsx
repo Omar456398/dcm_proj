@@ -1,19 +1,21 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { format, addDays, parseISO } from 'date-fns';
-import { fetchAppointments } from '../api/appointments';
+import { formatUtcDate, shiftUtcDays, getTodayUtcDate } from '../utils/dateTime';
+import { fetchAppointments, fetchDoctors } from '../api/appointments';
 import { AppointmentStatus } from '../types/appointment';
+import { useNavigation } from '../context/NavigationContext';
 import AppointmentCard from '../components/AppointmentCard';
 import { SkeletonCard, EmptyState, ErrorState } from '../components/States';
 import { STATUS_OPTIONS } from '../components/StatusBadge';
 
-// All doctors currently come from appointments; a dedicated /doctors endpoint
-// can replace this once built. For now we derive unique doctors from results.
 const ALL = 'all';
 
 export default function AppointmentsPage() {
-  const today = format(new Date(), 'yyyy-MM-dd');
-  const [date, setDate] = useState(today);
+  const { selectedDate, setSelectedDate, navigateToCreate, isNavigating } = useNavigation();
+  const today = getTodayUtcDate();
+  const date = selectedDate || today;
+  const setDate = setSelectedDate;
+
   const [doctorId, setDoctorId] = useState<string>(ALL);
   const [status, setStatus] = useState<AppointmentStatus | typeof ALL>(ALL);
 
@@ -30,22 +32,28 @@ export default function AppointmentsPage() {
     staleTime: 30_000,
   });
 
-  // Derive unique doctors from loaded data for the doctor filter dropdown
+  // Query doctors from backend endpoint, fallback to deriving from appointments
+  const { data: serverDoctors = [] } = useQuery({
+    queryKey: ['doctors'],
+    queryFn: fetchDoctors,
+    staleTime: 60_000,
+  });
+
   const doctors = React.useMemo(() => {
+    if (serverDoctors.length > 0) return serverDoctors;
     if (!data) return [];
     const map = new Map<string, string>();
     data.forEach((a) => {
       if (a.doctor) map.set(a.doctor.id, a.doctor.name);
     });
     return Array.from(map.entries()).map(([id, name]) => ({ id, name }));
-  }, [data]);
+  }, [serverDoctors, data]);
 
-  const parsedDate = parseISO(date);
-  const dateLabel = format(parsedDate, 'EEE, MMM d yyyy');
+  const dateLabel = formatUtcDate(new Date(`${date}T00:00:00Z`));
   const isToday = date === today;
 
   function shiftDate(days: number) {
-    setDate(format(addDays(parsedDate, days), 'yyyy-MM-dd'));
+    setDate(shiftUtcDays(date, days));
   }
 
   return (
@@ -64,11 +72,25 @@ export default function AppointmentsPage() {
               <p className="text-xs text-blue-200 mt-0.5">Appointment Management</p>
             </div>
           </div>
-          {data && !isLoading && (
-            <span className="hidden sm:inline-flex items-center rounded-full bg-white/10 px-3 py-1 text-sm font-medium">
-              {data.length} appointment{data.length !== 1 ? 's' : ''}
-            </span>
-          )}
+          <div className="flex items-center gap-3">
+            {data && !isLoading && (
+              <span className="hidden sm:inline-flex items-center rounded-full bg-white/10 px-3 py-1 text-sm font-medium">
+                {data.length} appointment{data.length !== 1 ? 's' : ''}
+              </span>
+            )}
+
+            {/* New Appointment button */}
+            <button
+              onClick={() => navigateToCreate()}
+              disabled={isNavigating}
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-blue-500 hover:bg-blue-600 text-white text-xs font-bold shadow transition-all cursor-pointer active:scale-95 disabled:opacity-50"
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+              </svg>
+              <span>New Appointment</span>
+            </button>
+          </div>
         </div>
       </header>
 
