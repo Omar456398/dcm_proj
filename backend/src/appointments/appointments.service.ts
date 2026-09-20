@@ -35,6 +35,7 @@ export class AppointmentsService {
     const qb = this.appointmentRepo
       .createQueryBuilder('a')
       .leftJoinAndSelect('a.doctor', 'doctor')
+      .leftJoinAndSelect('a.imagingStudies', 'imagingStudies')
       .where('a.startsAt >= :dayStart AND a.startsAt <= :dayEnd', {
         dayStart,
         dayEnd,
@@ -56,7 +57,7 @@ export class AppointmentsService {
   async findOne(id: string): Promise<Appointment> {
     const appointment = await this.appointmentRepo.findOne({
       where: { id },
-      relations: { doctor: true },
+      relations: { doctor: true, imagingStudies: true },
     });
     if (!appointment) {
       throw new NotFoundException(`Appointment ${id} not found`);

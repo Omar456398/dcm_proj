@@ -3,11 +3,13 @@ import {
   PrimaryGeneratedColumn,
   Column,
   ManyToOne,
+  OneToMany,
   JoinColumn,
   CreateDateColumn,
   UpdateDateColumn,
 } from 'typeorm';
 import { Doctor } from './doctor.entity';
+import { ImagingStudy } from './imaging-study.entity';
 import { AppointmentStatus } from '../appointments/dto/appointments.dto';
 
 @Entity('appointment')
@@ -24,6 +26,9 @@ export class Appointment {
   @ManyToOne(() => Doctor, (d) => d.appointments, { onDelete: 'RESTRICT' })
   @JoinColumn({ name: 'doctorId' })
   doctor: Doctor;
+
+  @OneToMany(() => ImagingStudy, (s) => s.appointment)
+  imagingStudies: ImagingStudy[];
 
   @Column({ type: 'timestamptz' })
   startsAt: Date;
