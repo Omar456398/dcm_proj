@@ -26,7 +26,7 @@ interface NavigationContextValue {
   navigateToList: (targetDate?: string) => void;
 }
 
-const NavigationContext = createContext<NavigationContextValue | undefined>(
+export const NavigationContext = createContext<NavigationContextValue | undefined>(
   undefined,
 );
 

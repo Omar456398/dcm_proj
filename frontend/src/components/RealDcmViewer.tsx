@@ -128,6 +128,7 @@ export default function RealDcmViewer({ imagingStudies }: Props) {
         ctx.clearRect(0, 0, rect.width, rect.height);
 
         // Aspect fit calculation
+        if (!bitmap || !bitmap.width || !bitmap.height) return;
         const imageRatio = bitmap.width / bitmap.height;
         const containerRatio = rect.width / rect.height;
         let baseW = rect.width;
